@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Something Positive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark gray background */
+            color: #e2e8f0; /* Light gray text */
+        }
+        .header-container {
+            display: flex;
+            align-items: center; /* Vertically align items */
+            justify-content: center; /* Center the group */
+            gap: 0.5rem; /* Space between title and trademark */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .main-title {
+            /* text-3xl sm:text-4xl font-bold text-gray-100 - classes moved to HTML */
+        }
+        .header-trademark a {
+            color: #cbd5e0; /* Lighter gray for link */
+            text-decoration: none;
+            font-weight: 500; /* medium */
+            font-size: 2.25rem; /* Adjusted for header context - Tailwind text-4xl equivalent */
+            line-height: 1; /* Adjust line height */
+            margin-left: 0.5rem; /* Space from title */
+        }
+        .header-trademark a:hover {
+            text-decoration: none; /* No underline for this style */
+            color: #f7fafc; /* White on hover */
+        }
+        .news-item {
+            background-color: #2d3748; /* Slightly lighter dark gray */
+            border: 1px solid #4a5568; /* Darker border */
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem; /* Increased padding */
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            transition: box-shadow 0.3s ease, transform 0.2s ease-out;
+        }
+        .news-item:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        .news-item h3 {
+            color: #90cdf4; /* Light blue header */
+            margin-bottom: 0.5rem;
+        }
+        .news-item h3 a {
+            color: ##90cdf4; /* Brighter cyan link */
+            text-decoration: none;
+            font-weight: 600; /* Bolder title */
+        }
+        .news-item h3 a:hover {
+            text-decoration: underline;
+            color: #38b2ac; /* Darker cyan on hover */
+        }
+        .news-item p.description {
+            font-size: 0.875rem; /* Smaller description text */
+            color: #cbd5e0; /* Slightly lighter gray for description */
+            margin-top: 0.5rem;
+            line-height: 1.6; /* Improved line spacing */
+        }
+        .news-item span.source-tag {
+            display: inline-block;
+            background-color: #4a5568; /* Darker background for tag */
+            color: #f7fafc; /* White text for tag */
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* Pill shape */
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.75rem;
+        }
+        .loading-spinner {
+            border: 4px solid #4a5568; /* Darker border */
+            border-top: 4px solid #90cdf4; /* Light blue spinner */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #4a5568;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #718096;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+        .footer-text { /* Renamed from footer-trademark for clarity */
+            margin-top: 0.75rem; 
+            font-size: 0.875rem; 
+            color: #cbd5e0; 
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-200 bg-gray-900">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-3xl">
+        <header class="text-center mb-8">
+            <div class="header-container">
+                <h1 class="main-title text-3xl sm:text-4xl font-bold text-gray-100">Something Positive</h1>
+                <div class="header-trademark">
+                    <a href="https://introtest.netlify.app/" target="_blank" rel="noopener noreferrer">Δ|</a>
+                </div>
+            </div>
+            <p class="text-gray-400 mt-2 text-sm sm:text-base">Your daily dose of hope.</p>
+        </header>
+
+        <div class="text-center mb-6">
+            <button id="refreshButton" class="bg-blue-700 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">
+                Make your day
+            </button>
+        </div>
+        
+        <div id="loadingIndicator" class="loading-spinner hidden"></div>
+        <div id="newsContainer" class="mt-6">
+            </div>
+        <div id="errorMessages" class="text-center text-red-400 mt-4"></div>
+
+        <footer class="text-center mt-12 py-6 border-t border-gray-700">
+            <p class="text-xs text-gray-400">
+                &copy; <span id="currentYear"></span> Something Positive
+                is powered by various news sources and <a href="https://rss2json.com/" target="_blank" rel="noopener noreferrer" class="text-teal-300 hover:underline">rss2json.com</a>. 
+                We do not gurantee positive news and apoligize for anything you might find otherwise.
+            </p>
+            </footer>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        // Note: RSS feed reliability can vary. The rss2json.com service might also have temporary issues
+        // fetching or processing certain feeds, leading to errors (like 500 or 422).
+        // If a feed consistently fails, you might want to comment it out or find an alternative.
+        const NEWS_SOURCES = {
+            // Dedicated Good News & Solutions-Oriented Sources (Higher chance of appropriate content)
+            "Good News Network": "https://www.goodnewsnetwork.org/feed/",
+            "Positive News": "https://www.positive.news/feed/",
+            "Reasons to be Cheerful": "https://reasonstobecheerful.world/feed/",
+            "World's Best News": "https://worldsbestnews.org/feed/",
+            "Reddit Uplifting News": "https://www.reddit.com/r/UpliftingNews/.rss",
+
+            // --- General/Topical News Feeds (Commented out by default to prioritize focused sources) ---
+            // --- Uncomment cautiously, will require more filtering and might bring in less relevant content ---
+            
+            // Major International Broadcasters / Agencies (aim for global perspective, rely on filters)
+            // "Associated Press Top News": "https://rss.apnews.com/APTopNews.rss",
+            // "Reuters Top News": "http://feeds.reuters.com/reuters/topNews",
+            // "BBC News - Top Stories": "http://feeds.bbci.co.uk/news/rss.xml", // Main BBC feed
+            // "Al Jazeera English": "https://www.aljazeera.com/xml/rss/all.xml",
+            // "France 24 - International": "https://www.france24.com/en/rss",
+            // "Deutsche Welle (DW) - Top Stories": "https://rss.dw.com/rdf/rss-en-top",
+            // "NPR News": "https://feeds.npr.org/1001/rss.xml",
+            // "CBC News - Top Stories": "https://www.cbc.ca/cmlink/rss-topstories",
+
+            // Fact-Checking (might have positive "truth revealed" stories)
+            // "PolitiFact - All Articles": "https://www.politifact.com/rss/all/",
+            // "Snopes - All": "https://www.snopes.com/feed/",
+
+            // Science & Technology (potential for positive breakthroughs)
+            // "ScienceDaily - Top Science": "https://www.sciencedaily.com/rss/top/science.xml",
+            // "NASA - Breaking News": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+            // "TechCrunch": "https://techcrunch.com/feed/",
+            // "Ars Technica - All Content": "http://feeds.arstechnica.com/arstechnica/index/",
+
+            // Environment & Conservation
+            // "ScienceDaily - Top Environment": "https://www.sciencedaily.com/rss/top/environment.xml",
+            // "Treehugger": "https://www.treehugger.com/rss", 
+
+            // Arts, Culture & Human Interest
+            // "NPR - Arts & Life": "https://feeds.npr.org/1008/rss.xml",
+            // "Colossal (Art & Visual Culture)": "https://www.thisiscolossal.com/feed/",
+        };
+        const MAX_ARTICLES_PER_SOURCE = 7;
+        const RSS2JSON_API_BASE = "https://api.rss2json.com/v1/api.json?rss_url=";
+
+        const GOOD_NEWS_KEYWORDS = [
+            'breakthrough', 'rescue', 'saved', 'cure', 'discovered', 'recovery', 'saves', 'success',
+            'healing', 'reunited', 'rebuilds', 'honored', 'thrives', 'awarded', 'achieved',
+            'celebrated', 'innovate', 'innovation', 'milestone', 'volunteer', 'charitable', 'donation',
+            'unites', 'heroes', 'nonprofit', 'grassroots', 'mentorship', 'invention',
+            'winner', 'champion', 'accolade', 'recognition', 'positive', 'uplifting',
+            'inspiring', 'kindness', 'generosity', 'solution', 'advancement', 'benefit',
+            'collaborate', 'community', 'compassion', 'conservation', 'contribute', 'cooperate',
+            'empower', 'encourage', 'excel', 'excellent', 'gift', 'graduate',
+            'hopeful', 'improve', 'initiative', 'joy', 'love',
+            'mentor', 'miracle', 'overcome', 'peace', 'progress',
+            'reforest', 'reform', 'rejuvenate', 'renew', 'resilient', 'resolve', 'restore', 'share',
+            'solve', 'sustainable', 'transform', 'triumph', 'victory', 'wonderful',
+            "life-saving", "treatment shows promise", "medical breakthrough", "wildlife rescued",
+            "community health initiative", "marine habitat restored", "women in STEM",
+            "patient makes recovery", "hospital saves", "vaccination rollout success",
+            "healing together", "reforestation project", "plastic cleanup effort",
+            "park reopening celebration", "volunteer effort", "neighborhood unites",
+            "community rebuilds", "local heroes honored", "nonprofit fundraiser success",
+            "start-up secures funding", "research discovery", "education platform expands",
+            "student competition winner", "small business thrives", "scholarship awarded",
+            "milestone celebration", "innovation accolade", "community honor", "employee recognition"
+        ];
+
+        const NEGATIVE_KEYWORDS = [
+            'threat', 'conflict', 'war', 'geopolitics', 'election', 'partisan', 'government spending',
+            'crisis', 'dispute', 'sanctions', 'weapon', 'defense', 'military', 'alert', 'forces',
+            'troops', 'attack', 'casualties', 'protest', 'riot', 'arrest', 'investigation',
+            'corruption', 'scandal', 'fraud', 'lobbying', 'political', 'parliament', 'senate',
+            'congress', 'legislation', 'policy debate', 'impeachment', 'allegation', 'disinformation',
+            'propaganda', 'geopolitical tension', 'ceasefire violation', 'insurgency', 'coup',
+            'espionage', 'cyberattack', 'nuclear', 'ballistic', 'embargo', 'tariff', 'trade war',
+            'murder', 'killed', 'death', 'victim', 'assault', 'robbery', 'theft', 'kidnap',
+            'disaster', 'tragedy', 'catastrophe', 'fatal', 'injury', 'injured', 'crash', 'explosion',
+            'earthquake', 'hurricane', 'tornado', 'flood', 'wildfire', 'famine', 'drought', 'pandemic',
+            'epidemic', 'outbreak', 'emergency', 'evacuate', 'missing person',
+            'recession', 'inflation', 'unemployment', 'debt', 'bankruptcy', 'foreclosure', 'stock market crash',
+            'economic downturn', 'poverty', 'inequality',
+            'addiction', 'abuse', 'discrimination', 'hate crime', 'lawsuit', 'court case', 'controversy',
+            'explicit', 'graphic', 'disturbing', 'alarming'
+        ];
+
+        // --- DOM Elements ---
+        const newsContainer = document.getElementById('newsContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessagesDiv = document.getElementById('errorMessages');
+        const refreshButton = document.getElementById('refreshButton');
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // --- Functions ---
+        function containsKeyword(text, keywords) {
+            if (!text) return false;
+            const lowerText = text.toLowerCase();
+            return keywords.some(keywordOrPhrase => {
+                return lowerText.includes(keywordOrPhrase.toLowerCase());
+            });
+        }
+
+        async function fetchNewsFromSource(sourceName, feedUrl) {
+            console.log(`Fetching news from: ${sourceName} (${feedUrl})...`);
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const response = await fetch(`${RSS2JSON_API_BASE}${encodeURIComponent(feedUrl)}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    const statusText = response.statusText || "No status text";
+                    throw new Error(`HTTP error! status: ${response.status} (${statusText}) while fetching ${sourceName}`);
+                }
+                const data = await response.json();
+
+                if (data.status !== 'ok') {
+                    console.error(`Error from rss2json for ${sourceName}:`, data.message);
+                    throw new Error(`API error for ${sourceName}: ${data.message || 'Unknown API error'}`);
+                }
+
+                if (!data.items || data.items.length === 0) {
+                    console.log(`No items found for ${sourceName}.`);
+                    return [];
+                }
+
+                const articles = data.items.slice(0, MAX_ARTICLES_PER_SOURCE).map(item => {
+                    const descriptionText = stripHtml(item.description || item.content || '');
+                    return {
+                        title: item.title,
+                        link: item.link,
+                        pubDate: item.pubDate,
+                        description: descriptionText.substring(0, 200) + (descriptionText.length > 200 ? "..." : ""),
+                        fullTextForFiltering: (item.title + ' ' + descriptionText).toLowerCase(),
+                        source: sourceName
+                    };
+                });
+
+                const positiveArticles = articles.filter(article =>
+                    containsKeyword(article.fullTextForFiltering, GOOD_NEWS_KEYWORDS)
+                );
+
+                const trulyGoodArticles = positiveArticles.filter(article => {
+                    const hasNegativeKeyword = containsKeyword(article.fullTextForFiltering, NEGATIVE_KEYWORDS);
+                    if (hasNegativeKeyword) {
+                        console.log(`Excluding (due to negative keyword): "${article.title}" from ${sourceName}`);
+                    }
+                    return !hasNegativeKeyword;
+                });
+
+                if (trulyGoodArticles.length === 0 && positiveArticles.length > 0) {
+                    console.log(`Source ${sourceName} had ${positiveArticles.length} articles matching positive keywords, but all were excluded by negative keywords.`);
+                } else if (trulyGoodArticles.length === 0 && articles.length > 0) {
+                    console.log(`Source ${sourceName} had ${articles.length} articles, but 0 matched positive keywords (or were subsequently excluded).`);
+                } else if (articles.length > 0) {
+                    console.log(`Found ${articles.length} items from ${sourceName}, initial positive filter: ${positiveArticles.length}, final after negative filter: ${trulyGoodArticles.length}.`);
+                }
+                return trulyGoodArticles;
+
+            } catch (error) {
+                console.error(`Failed to fetch or parse news from ${sourceName}:`, error);
+                const p = document.createElement('p');
+                if (error.name === 'AbortError') {
+                    p.textContent = `Could not load news from ${sourceName}. Request timed out.`;
+                } else {
+                    p.textContent = `Could not load news from ${sourceName}. ${error.message}.`;
+                }
+                errorMessagesDiv.appendChild(p);
+                return [];
+            }
+        }
+
+        function stripHtml(html) {
+           if (!html) return "";
+           const doc = new DOMParser().parseFromString(html, 'text/html');
+           return doc.body.textContent || "";
+        }
+
+        function displayNews(articles) {
+            articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+            const totalMaxArticlesDisplayed = 15;
+            const articlesToDisplay = articles.slice(0, totalMaxArticlesDisplayed);
+
+            articlesToDisplay.forEach(article => {
+                const articleElement = document.createElement('div');
+                articleElement.className = 'news-item';
+
+                let descriptionHtml = '';
+                if (article.description && article.description.length > 3) {
+                    descriptionHtml = `<p class="description">${escapeHtml(article.description)}</p>`;
+                }
+
+                articleElement.innerHTML = `
+                    <h3 class="mb-1">
+                        <a href="${escapeHtml(article.link)}" target="_blank" rel="noopener noreferrer">
+                            ${escapeHtml(article.title)}
+                        </a>
+                    </h3>
+                    ${descriptionHtml}
+                    <span class="source-tag">${escapeHtml(article.source)}</span>
+                `;
+                newsContainer.appendChild(articleElement);
+            });
+        }
+
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        async function loadAllNews() {
+            newsContainer.innerHTML = '';
+            errorMessagesDiv.innerHTML = '';
+            loadingIndicator.classList.remove('hidden');
+            refreshButton.disabled = true;
+            refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+            let allFilteredArticles = [];
+            const activeSources = Object.entries(NEWS_SOURCES).filter(([name, url]) => {
+                return url && url.trim() !== '';
+            });
+
+            const sourcePromises = activeSources.map(([name, url]) =>
+                fetchNewsFromSource(name, url)
+            );
+
+            try {
+                const results = await Promise.all(sourcePromises);
+                results.forEach(sourceArticles => {
+                    if (sourceArticles && sourceArticles.length > 0) {
+                        allFilteredArticles = allFilteredArticles.concat(sourceArticles);
+                    }
+                });
+
+                if (allFilteredArticles.length > 0) {
+                    displayNews(allFilteredArticles);
+                } else {
+                    if (!errorMessagesDiv.hasChildNodes()) {
+                       newsContainer.innerHTML = '<p class="text-center text-gray-400">No news matching positive keywords (and not matching negative keywords) found from any source today. Try again later or check error messages.</p>';
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching all news sources:", error);
+                if (!errorMessagesDiv.hasChildNodes()) {
+                    const p = document.createElement('p');
+                    p.textContent = `An unexpected error occurred while fetching news. Please try again.`;
+                    errorMessagesDiv.appendChild(p);
+                }
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                refreshButton.disabled = false;
+                refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // --- Event Listeners ---
+        refreshButton.addEventListener('click', loadAllNews);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log("Page loaded. Click 'Fetch Filtered Good News' to start.");
+        });
+
+    </script>
+</body>
+</html>
